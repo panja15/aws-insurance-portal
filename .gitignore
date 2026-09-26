@@ -5,6 +5,7 @@
 
 # Testing
 /coverage
+/lambda
 
 # Next.js build output
 /.next/

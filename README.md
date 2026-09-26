@@ -2,7 +2,7 @@
 
 A lightweight, production-ready Next.js web application built for the **NAGP Cloud Computing Workshop assignment**. 
 
-This application acts as a customer self-service portal where users can upload insurance documents (identity proofs, claim forms, and supporting evidence). The backend securely streams and stores files in an Amazon S3 bucket.
+This application acts as a customer self-service portal where users can upload documents. The backend securely streams and stores files in an Amazon S3 bucket.
 
 ---
 
@@ -26,26 +26,36 @@ This project represents the primary ingest layer of an enterprise insurance clai
 [ Amazon S3 Bucket (uploads/*) ]
 ```
 
-> **Future Architecture (Post-Workshop Phase):**  
-> S3 `ObjectCreated` events will trigger an AWS Lambda function to extract document metadata and persist claims records into an Amazon RDS database. That Lambda and RDS component will be configured separately in AWS.
+
+> S3 `ObjectCreated` events, triggers an AWS Lambda function to extract document metadata and persist claims records into an Amazon RDS database.  Lambda and RDS component have been configured separately in AWS.
 
 ---
 
 ## 2. Technology Stack
 
 - **Framework:** Next.js (App Router)
-- **Language:** TypeScript (Strict mode enabled)
-- **UI Library:** React
+- **Language:** TypeScript
 - **Cloud SDK:** AWS SDK for JavaScript v3 (`@aws-sdk/client-s3`)
 - **Styling:** Vanilla CSS (`app/globals.css`)
 - **Storage:** Amazon Simple Storage Service (Amazon S3)
 
 ---
 
-## 3. Project Structure
+## 3. Documentation
+
+| Document | Purpose |
+|-----------|----------|
+| `README.md` | Project setup and execution guide |
+| `docs/Component_Description_Document.docx` | Detailed component architecture, responsibilities, and inter-service communication |
+| `docs/Scope_and_Assumptions.docx` | System scope, boundaries, architectural assumptions, and constraints |
+| `docs/architecture diagram.drawio.svg` | System architecture diagram |  
+
+---
+
+## 4. Project Structure
 
 ```
-insurance-upload-portal/
+aws-insurance-portal/
 ├── app/
 │   ├── api/
 │   │   ├── health/
@@ -66,7 +76,7 @@ insurance-upload-portal/
 
 ---
 
-## 4. Prerequisites
+## 5. Prerequisites
 
 Before running or deploying the application, ensure you have:
 
@@ -77,12 +87,12 @@ Before running or deploying the application, ensure you have:
 
 ---
 
-## 5. Local Installation
+## 6. Local Installation
 
 1. Clone or download the repository to your local machine:
    ```bash
-   git clone <repository-url>
-   cd insurance-upload-portal
+   git clone https://github.com/panja15/aws-insurance-portal.git
+   cd aws-insurance-portal
    ```
 
 2. Install the required dependencies:
@@ -92,7 +102,7 @@ Before running or deploying the application, ensure you have:
 
 ---
 
-## 6. Environment Variables
+## 7. Environment Variables
 
 Create a local environment file by copying `.env.example`:
 
@@ -106,7 +116,6 @@ Configure the following variables in `.env.local`:
 |---|---|---|---|
 | `AWS_REGION` | Yes | `ap-south-1` | AWS region where your S3 bucket resides |
 | `S3_BUCKET_NAME` | Yes | *None* | Name of your private Amazon S3 bucket |
-| `PORT` | No | `3000` | Port for the HTTP server |
 
 > **Security Note:** Never commit `.env` or `.env.local` to version control. The application relies on the default AWS SDK credential chain:
 > - **Locally:** Automatically reads standard AWS credentials from `~/.aws/credentials` or environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`).
@@ -114,7 +123,7 @@ Configure the following variables in `.env.local`:
 
 ---
 
-## 7. How to Run Locally
+## 8. How to Run Locally
 
 Start the development server:
 
@@ -129,7 +138,7 @@ http://localhost:3000
 
 ---
 
-## 8. How to Test the Health Endpoint
+## 9. How to Test the Health Endpoint
 
 The health check route is used by the AWS Application Load Balancer (ALB) to monitor instance health.
 
@@ -156,7 +165,7 @@ Content-Type: application/json
 
 ---
 
-## 9. How to Test File Upload
+## 10. How to Test File Upload
 
 ### Testing via Web Interface:
 1. Open `http://localhost:3000` in your browser.
@@ -164,8 +173,7 @@ Content-Type: application/json
 3. The selected filename will appear next to the button.
 4. Click **Upload**.
 5. Observe the loading indicator while the file streams to S3.
-6. A success message will appear showing the confirmed S3 key:
-   `uploads/<uuid>-<filename>`
+6. A success message will appear showing the confirmed `S3 key: uploads/<uuid>-<filename>`
 
 ### Testing via cURL:
 ```bash
@@ -189,11 +197,11 @@ Content-Type: application/json
 
 ---
 
-## 10. S3 Configuration Requirements
+## 11. S3 Configuration Requirements
 
 1. **Bucket Creation:**
    - Create a bucket in your designated region (e.g., `ap-south-1`).
-   - Bucket name example: `insurance-claim-documents-<your-account-id>`
+   - Bucket name example: `insurance-documents-<your-account-id>`
 
 2. **Block Public Access:**
    - **Enable "Block *all* public access"** on the S3 bucket.
@@ -207,7 +215,7 @@ Content-Type: application/json
 
 ---
 
-## 11. IAM Permissions Required by the EC2 Role
+## 12. IAM Permissions Required by the EC2 Role
 
 When running on EC2, do **not** configure access keys or secret keys on the server. Instead, attach an IAM Role to your EC2 instance.
 
@@ -253,7 +261,7 @@ Attach this IAM role to your EC2 instance via **EC2 Console -> Actions -> Securi
 
 ---
 
-## 12. Production Build Instructions
+## 13. Production Build Instructions
 
 To compile and optimize the application for production deployment:
 
@@ -265,7 +273,7 @@ This runs `next build`, validating TypeScript types and creating an optimized bu
 
 ---
 
-## 13. EC2 Deployment Instructions (Amazon Linux 2023)
+## 14. EC2 Deployment Instructions (Amazon Linux 2023)
 
 ### Step 1: Connect to your EC2 Instance
 ```bash
@@ -287,8 +295,8 @@ npm -v
 ### Step 3: Clone or Copy Application Files
 ```bash
 cd /home/ec2-user
-git clone <repository-url> insurance-upload-portal
-cd insurance-upload-portal
+git clone https://github.com/panja15/aws-insurance-portal.git aws-insrance-portal
+cd aws-insurance-portal
 ```
 
 ### Step 4: Install Dependencies & Build
@@ -303,14 +311,12 @@ Create `.env.production` in the project root:
 cat << 'EOF' > .env.production
 AWS_REGION=ap-south-1
 S3_BUCKET_NAME=<your-s3-bucket-name>
-PORT=3000
-HOSTNAME=0.0.0.0
 EOF
 ```
 
 ---
 
-## 14. How to Start the Application on EC2
+## 15. How to Start the Application on EC2
 
 ### Option A: Direct Start (for quick testing)
 ```bash
@@ -355,7 +361,7 @@ sudo systemctl status insurance-portal
 
 ---
 
-## 15. How to Verify the Uploaded Object in S3
+## 16. How to Verify the Uploaded Object in S3
 
 ### Method 1: Using the AWS Management Console
 1. Open the [Amazon S3 Console](https://s3.console.aws.amazon.com/).
